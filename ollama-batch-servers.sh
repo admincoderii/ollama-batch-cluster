@@ -7,6 +7,27 @@ OLLAMA_BINARY="/home/rmcdermo/ollama/bin/ollama"
 LOG_DIR="ollama-server-logs"
 SLEEP_INTERVAL=1
 
+# Function to install Ollama
+install_ollama() {
+    echo "Ollama not found. Installing Ollama..."
+    
+    # Create directory if it doesn't exist
+    mkdir -p "$(dirname "$OLLAMA_BINARY")"
+    
+    # Download and install Ollama
+    curl -fsSL https://ollama.ai/install.sh | sh
+    
+    # Check if installation was successful
+    if command -v ollama &> /dev/null; then
+        echo "Ollama installed successfully."
+        # Update OLLAMA_BINARY to use system installation
+        OLLAMA_BINARY=$(which ollama)
+    else
+        echo "Error: Failed to install Ollama."
+        exit 1
+    fi
+}
+
 # Check if the number of GPUs is provided as an argument
 if [[ $# -ne 1 ]]; then
     echo "Usage: $0 <num_gpus>"
@@ -22,8 +43,14 @@ if ! [[ "$NUM_GPUS" =~ ^[0-9]+$ ]] || [[ "$NUM_GPUS" -le 0 ]]; then
     exit 1
 fi
 
-# Check if the Ollama binary exists
-if [[ ! -x "$OLLAMA_BINARY" ]]; then
+# Check if Ollama is installed
+if [[ ! -x "$OLLAMA_BINARY" ]] && ! command -v ollama &> /dev/null; then
+    install_ollama
+elif command -v ollama &> /dev/null && [[ ! -x "$OLLAMA_BINARY" ]]; then
+    # Use system installation if available
+    OLLAMA_BINARY=$(which ollama)
+    echo "Using system Ollama installation at $OLLAMA_BINARY"
+elif [[ ! -x "$OLLAMA_BINARY" ]]; then
     echo "Error: Ollama binary not found or not executable at $OLLAMA_BINARY"
     exit 1
 fi

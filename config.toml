@@ -1,4 +1,4 @@
-model = "llama3.2"
+model = "qwen3:0.6b"
 system_message = """You are an alien that can only respond with strings of emoji characters to convey your answer."""
 
 [ollama_instances]
